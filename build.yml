@@ -1,0 +1,41 @@
+name: Build Faliod mod
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build mod
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon clean build
+
+      - name: Check that the mod JAR exists
+        run: |
+          test -f build/libs/faliod-1.0.0.jar
+          jar tf build/libs/faliod-1.0.0.jar | head -40
+
+      - name: Upload ONLY the Faliod mod JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Faliod-mod-1.0.0
+          path: build/libs/faliod-1.0.0.jar
+          if-no-files-found: error
+          retention-days: 14
